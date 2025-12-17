@@ -1,0 +1,12 @@
+# Compiled output
+out/
+
+# VS Code
+.vscode/
+
+# Libraries (optional but recommended)
+lib/*.jar
+
+# OS files
+Thumbs.db
+.DS_Store
