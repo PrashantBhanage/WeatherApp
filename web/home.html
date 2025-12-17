@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-body">
+
+<header class="top-nav">
+    <div class="top-nav-left">
+        <div class="nav-logo-circle">
+            <img src="/images/logo.png" alt="Logo">
+        </div>
+        <div class="nav-titles">
+            <div class="nav-app-name">Weather Dashboard</div>
+            <div class="nav-app-subtitle">Hi, {{USERNAME}}</div>
+        </div>
+    </div>
+
+    <nav class="top-nav-right">
+        <div class="nav-links">
+    <a href="/home" class="nav-link {{ACTIVE_HOME}}">Dashboard</a>
+
+    
+
+    {{PROFILE_LINK}}
+    <a href="/information" class="nav-link {{ACTIVE_INFO}}">Information</a>
+    {{AUTH_LINK}}
+</div>
+
+    </nav>
+</header>
+
+<main class="app-main">
+
+    <section class="image-card">
+        <img src="/images/Nature.png" alt="Weather illustration">
+    </section>
+
+    <section class="hero-card">
+        <div class="hero-text">
+            <h1>Welcome back!</h1>
+            <p>Check the weather and air quality in your favourite cities.</p>
+            <div class="hero-tags">
+                <span class="hero-tag">Real-time Data</span>
+                <span class="hero-tag">Air Quality Index</span>
+                <span class="hero-tag">Detailed Forecasts</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <div class="card-title-wrap">
+                <span class="card-icon"></span>
+                <div>
+                    <h2>Check Weather</h2>
+                    <p class="card-subtitle">Search live weather and air quality for any city.</p>
+                </div>
+            </div>
+        </div>
+
+        <form action="/getWeather" method="post" class="search-form">
+            <input type="text" name="city" class="search-input"
+                   placeholder="Enter city name… (e.g. Pune)" required>
+            <button type="submit" class="btn-primary search-btn">Search</button>
+        </form>
+
+        <p class="card-tip">Tip: Try typing <b>Mumbai</b>, <b>Pune</b>, or <b>Delhi</b>.</p>
+    </section>
+
+    <div class="grid-2">
+
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title-wrap">
+                    <span class="card-icon"></span>
+                    <div>
+                        <h2>Saved Locations</h2>
+                        <p class="card-subtitle">These cities are saved to your account in MySQL.</p>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="location-list">
+                {{SAVED_LOCATIONS}}
+            </ul>
+
+            <form action="/saveLocation" method="post" class="saved-form">
+                <input type="text" name="city" class="saved-input"
+                       placeholder="Add city (e.g. Pune)" required>
+                <button type="submit" class="btn-secondary">Save</button>
+            </form>
+        </section>
+
+        <section class="card history-card">
+            <div class="card-header-row">
+                <div class="card-header-left">
+                    
+                    <div>
+                        <h2 class="card-title">Recent Searches</h2>
+                        <p class="card-subtitle">Your last few live weather checks.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-scroll">
+                <ul class="history-list">
+                    {{WEATHER_HISTORY}}
+                </ul>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+</body>
+</html>

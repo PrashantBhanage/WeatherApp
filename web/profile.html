@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-body">
+
+<header class="top-nav">
+    <div class="top-nav-left">
+        <div class="nav-logo-circle">
+            <img src="/images/logo.png" alt="Logo">
+        </div>
+        <div class="nav-titles">
+            <div class="nav-app-name">Weather Dashboard</div>
+            <div class="nav-app-subtitle">Hi, {{USERNAME}}</div>
+        </div>
+    </div>
+
+    <nav class="top-nav-right">
+        <div class="nav-links">
+            <a href="/home" class="nav-link {{ACTIVE_HOME}}">Dashboard</a>
+            {{PROFILE_LINK}}
+            <a href="/information" class="nav-link {{ACTIVE_INFO}}">Information</a>
+            {{AUTH_LINK}}
+        </div>
+    </nav>
+</header>
+
+<main class="page-main">
+    <section class="card profile-card">
+        <h1 class="card-title">Profile Settings</h1>
+        <p class="card-subtitle">Update your basic account details.</p>
+
+        <form action="/updateProfile" method="post" class="profile-form">
+            <label class="field-label">Full Name</label>
+            <input type="text" name="name" class="text-input" value="{{NAME}}" required>
+
+            <label class="field-label">Email</label>
+            <input type="email" name="email" class="text-input" value="{{EMAIL}}" required>
+
+            <label class="field-label">Password</label>
+            <input type="password" name="password" class="text-input" placeholder="New password" required>
+
+            <button type="submit" class="btn-primary profile-save-btn">Save Changes</button>
+        </form>
+
+        <!-- PROFILE_STATUS -->
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-body">
+
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="logo-circle">
+            <span>☁</span>
+        </div>
+        <div>
+            <h1 class="app-title">Weather Dashboard</h1>
+            <p class="app-subtitle">Hi, User</p>
+        </div>
+    </div>
+
+    <nav class="topbar-nav">
+        <a href="/dashboard" class="nav-link nav-link-active">Dashboard</a>
+        
+        <a href="/profile" class="nav-link">Profile</a>
+        <a href="/logout" class="nav-link nav-link-danger">Logout</a>
+    </nav>
+</header>
+
+<main class="app-main">
+
+    <!-- HERO BANNER -->
+    <section class="hero-card">
+        <div class="hero-text">
+            <h2>Welcome back!</h2>
+            <p>Check live weather, air quality and forecasts in your favourite cities.</p>
+            <div class="hero-pills">
+                <span class="pill">Real-time Data</span>
+                <span class="pill">Air Quality Index</span>
+                <span class="pill">Detailed Forecasts</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEARCH CARD -->
+    <section class="card search-card">
+        <div class="card-header-row">
+            <div class="card-header-title">
+                <span class="card-icon">☁</span>
+                <div>
+                    <h3>Check Weather</h3>
+                    <p>Search live weather and air quality for any city.</p>
+                </div>
+            </div>
+        </div>
+
+        <form action="/getWeather" method="post" class="search-form">
+            <div class="search-input-wrap">
+                <input type="text" name="city" placeholder="Enter city name… (e.g. Pune)">
+            </div>
+            <button type="submit" class="btn-primary">Search</button>
+        </form>
+
+        <p class="card-tip">Tip: Try typing <strong>Mumbai</strong>, <strong>Pune</strong>, or <strong>Delhi</strong>.</p>
+    </section>
+
+    <!-- 2-COLUMN LAYOUT -->
+    <section class="two-column">
+        <!-- SAVED LOCATIONS -->
+        <section class="card">
+            <div class="card-header-row">
+                <div class="card-header-title">
+                    <span class="card-icon"></span>
+                    <div>
+                        <h3>Saved Locations</h3>
+                        <p>These cities are saved to your account in MySQL.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- if no locations, your Java puts "No saved..." -->
+            <ul class="simple-list">
+                <!-- SAVED_LOCATIONS -->
+            </ul>
+
+            <form action="/saveLocation" method="post" class="saved-form">
+                <input type="text" name="city" placeholder="Add city (e.g. Pune)">
+                <button type="submit" class="btn-secondary">Save</button>
+            </form>
+        </section>
+
+        <!-- RECENT SEARCHES -->
+        <section class="card">
+            <div class="card-header-row">
+                <div class="card-header-title">
+                    <span class="card-icon">⏱</span>
+                    <div>
+                        <h3>Recent Searches</h3>
+                        <p>Your last few live weather checks.</p>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="history-list">
+                <!-- WEATHER_HISTORY -->
+            </ul>
+        </section>
+    </section>
+
+    <!-- BIG IMAGE CARD -->
+    <section class="card image-card">
+        <img src="/images/landscape.jpg" alt="Weather illustration">
+    </section>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather App • Login</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="/images/logo.png" alt="Logo">
+        </div>
+        <h1 class="auth-title">Weather App</h1>
+        <p class="auth-subtitle">
+            Sign in to check the weather and manage your cities.
+        </p>
+
+        <form action="/doLogin" method="post" class="auth-form">
+            <label class="auth-label">Email</label>
+            <div class="auth-input-wrap">
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+
+            <label class="auth-label">Password</label>
+            <div class="auth-input-wrap">
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary auth-btn">
+                Sign In
+            </button>
+        </form>
+
+        <p class="auth-footer-text">
+            Don’t have an account?
+            <a href="/register" class="auth-link">Create Account</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

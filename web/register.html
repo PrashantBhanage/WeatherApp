@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather App • Register</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="/images/logo.png" alt="Logo">
+        </div>
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">
+            Join to access live weather and air quality data.
+        </p>
+
+        <form action="/doRegister" method="post" class="auth-form">
+            <label class="auth-label">Full Name</label>
+            <div class="auth-input-wrap">
+                <input type="text" name="name" placeholder="Your name" required>
+            </div>
+
+            <label class="auth-label">Email</label>
+            <div class="auth-input-wrap">
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+
+            <label class="auth-label">Password</label>
+            <div class="auth-input-wrap">
+                <input type="password" name="password" placeholder="Create a password" required>
+            </div>
+
+            <button type="submit" class="btn-primary auth-btn">
+                Create Account
+            </button>
+        </form>
+
+        <p class="auth-footer-text">
+            Already have an account?
+            <a href="/" class="auth-link">Sign In</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
