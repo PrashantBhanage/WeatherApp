@@ -5,6 +5,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import dao.DBUtil;
+import server.WeatherServer.WeatherHandler.StaticVideoHandler;
+
 import java.io.*;
 import java.net.HttpURLConnection; // Assuming DBUtil exists and provides Connection
 import java.net.InetSocketAddress;
@@ -35,7 +37,7 @@ public class WeatherServer {
             "5773a4cdf02541c990973658252711"; // your key
 
     private static final String WEATHER_API_BASE_URL =
-            "https://api.weatherapi.com/v1/current.json";
+            "https://api.weatherapi.com/v1/forecast.json";
 
     public static void main(String[] args) {
         try {
@@ -51,7 +53,7 @@ public class WeatherServer {
             // login page (index.html)
             server.createContext("/login", new FileHandler("index.html", "text/html"));
 
-            server.createContext("/locations", new FileHandler("locations.html", "text/html"));
+           // server.createContext("/locations", new FileHandler("locations.html", "text/html"));
             
             server.createContext("/register", new FileHandler("register.html", "text/html"));
 
@@ -896,12 +898,16 @@ html = html.replace("{{AUTH_LINK}}",
 
             // TRY CALLING API
             String weatherSummary;
+            String forecastHtml = "";
             try {
-                weatherSummary = fetchWeatherFromApi(cityRaw);  // LIVE API
-            } catch (Exception e) {
+            String jsonResponse = fetchWeatherJsonFromApi(cityRaw);  // Get raw JSON
+            weatherSummary = parseWeatherSummary(jsonResponse);       // Parse current weather
+            forecastHtml = parseForecastDays(jsonResponse);           // Parse forecas  t
+                }catch (Exception e) {
                 e.printStackTrace();
                 weatherSummary = "Error fetching live weather ❌";
-            }
+                forecastHtml = "";
+}
 
             // Save to weather_history if user is logged in and API worked
             String userEmail = getUserEmailFromCookie(exchange);
@@ -920,31 +926,53 @@ html = html.replace("{{AUTH_LINK}}",
                 }
             }
 
-            String response =
-                    "<!DOCTYPE html>" +
-                    "<html><head>" +
-                    "<title>Weather Result</title>" +
-                    "<link rel='stylesheet' href='/styles.css'>" +
-                    "</head><body class='result-page'>" +
-                    "<div class='result-card'>" +
-                    "<span class='badge'>Live Weather</span>" +
-                    "<h2>Weather in " + city + "</h2>" +
-                    "<p class='result-label'>Weather & Air Quality</p>" +
-                    "<p class='result-value'>" + weatherSummary + "</p>" +
-                    "<p class='subtitle'>Powered by WeatherAPI.com</p>" +
-                    "<a href='/home' class='btn-primary' style='display:inline-block;text-align:center;margin-top:10px;'>Back to Home</a>" +
-                    "</div></body></html>";
+     String response =
+    "<!DOCTYPE html>" +
+    "<html><head>" +
+    "<meta charset='UTF-8'>" +
+    "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+    "<title>Weather in " + city + "</title>" +
+    "<link rel='stylesheet' href='/styles.css'>" +
+    "</head>" +
+    "<body class='weather-result-body' onload='window.scrollTo(0,0)'>" +
+    "<div class='weather-container'>" +
+    "<div class='current-weather-card'>" +
+    "<div class='weather-header'>" +
+    "<h1 class='city-name'>" + city + "</h1>" +
+    "<span class='weather-badge'>Live Weather</span>" +
+    "</div>" +
+    "<div class='current-temp-section'>" +
+    "<div class='temp-display'>" + extractTemp(weatherSummary) + "</div>" +
+    "<div class='weather-icon-large'>" + getWeatherEmoji(weatherSummary) + "</div>" +
+    "</div>" +
+    "<div class='weather-condition'>" + extractCondition(weatherSummary) + "</div>" +
+    "<div class='weather-details-grid'>" +
+    extractWeatherDetails(weatherSummary) +
+    "</div>" +
+    "</div>" +
+    "<div class='forecast-section'>" +
+    "<h2 class='forecast-title'>3-Day Forecast</h2>" +
+    "<div class='forecast-cards'>" +
+    forecastHtml +
+    "</div>" +
+    "</div>" +
+    "<a href='/home' class='back-button'>← Back to Home</a>" +
+    "<p class='powered-by'>Powered by WeatherAPI.com</p>" +
+    "</div>" +
+    "</body></html>";
 
-            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-            exchange.sendResponseHeaders(200, bytes.length);
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(bytes);
-            }
-        }
+// ✅ SEND RESPONSE — THIS WAS MISSING
+byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+Headers headers = exchange.getResponseHeaders();
+headers.add("Content-Type", "text/html; charset=UTF-8");
+exchange.sendResponseHeaders(200, bytes.length);
+
+try (OutputStream os = exchange.getResponseBody()) {
+    os.write(bytes);
+}
     }
+}
 
-    // ---------- SAVE LOCATION (DB insert) ----------
     static class SaveLocationHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -1003,41 +1031,41 @@ html = html.replace("{{AUTH_LINK}}",
     // ================== UTILITIES ==================
 
     // Call WeatherAPI.com
-    private static String fetchWeatherFromApi(String city) throws IOException {
-        if (city == null || city.isBlank()) {
-            throw new IOException("City is empty");
-        }
-
-        String encodedCity = URLEncoder.encode(city, StandardCharsets.UTF_8);
-        String urlStr = WEATHER_API_BASE_URL
-                + "?key=" + WEATHER_API_KEY
-                + "&q=" + encodedCity
-                + "&aqi=yes";
-
-        HttpURLConnection conn = null;
-        try {
-            URL url = new URL(urlStr);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-
-            int code = conn.getResponseCode();
-            if (code != 200) {
-                throw new IOException("API response code: " + code);
-            }
-
-            try (InputStream is = conn.getInputStream()) {
-                String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                return parseWeatherSummary(json);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();   // will show in your server console
-            throw e;
-        } finally {
-            if (conn != null) conn.disconnect();
-        }
+   private static String fetchWeatherJsonFromApi(String city) throws IOException {
+    if (city == null || city.isBlank()) {
+        throw new IOException("City is empty");
     }
+
+    String encodedCity = URLEncoder.encode(city, StandardCharsets.UTF_8);
+    String urlStr = WEATHER_API_BASE_URL
+            + "?key=" + WEATHER_API_KEY
+            + "&q=" + encodedCity
+            + "&days=5"
+            + "&aqi=yes";
+
+    HttpURLConnection conn = null;
+    try {
+        URL url = new URL(urlStr);
+        conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(5000);
+
+        int code = conn.getResponseCode();
+        if (code != 200) {
+            throw new IOException("API response code: " + code);
+        }
+
+        try (InputStream is = conn.getInputStream()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);  // Return raw JSON
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw e;
+    } finally {
+        if (conn != null) conn.disconnect();
+    }
+}
 
     // Parse WeatherAPI.com current.json
     private static String parseWeatherSummary(String json) {
@@ -1149,6 +1177,210 @@ html = html.replace("{{AUTH_LINK}}",
             return "Live data (raw): " + json.substring(0, Math.min(120, json.length())) + "...";
         }
     }
+
+    // Extract temperature from summary
+private static String extractTemp(String summary) {
+    try {
+        int idx = summary.indexOf("°C");
+        if (idx != -1) {
+            String temp = summary.substring(0, idx + 2);
+            return temp.trim();
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return "N/A";
+}
+
+// Extract condition from summary
+private static String extractCondition(String summary) {
+    try {
+        String[] lines = summary.split("<br>");
+        if (lines.length > 0) {
+            String firstLine = lines[0];
+            int dotIdx = firstLine.indexOf("·");
+            if (dotIdx != -1) {
+                return firstLine.substring(dotIdx + 1).trim();
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return "Clear";
+}
+
+// Get weather emoji based on condition
+private static String getWeatherEmoji(String summary) {
+    String lower = summary.toLowerCase();
+    if (lower.contains("sunny") || lower.contains("clear")) return "☀️";
+    if (lower.contains("cloudy") || lower.contains("overcast")) return "☁️";
+    if (lower.contains("rain") || lower.contains("drizzle")) return "🌧️";
+    if (lower.contains("thunder") || lower.contains("storm")) return "⛈️";
+    if (lower.contains("snow")) return "❄️";
+    if (lower.contains("fog") || lower.contains("mist")) return "🌫️";
+    return "🌤️";
+}
+
+// Extract weather details into grid items
+private static String extractWeatherDetails(String summary) {
+    StringBuilder details = new StringBuilder();
+    
+    String[] lines = summary.split("<br>");
+    
+    for (String line : lines) {
+        if (line.contains("Feels like")) {
+            String value = line.replace("Feels like", "").trim();
+            details.append(
+                "<div class='detail-item'>" +
+                "<span class='detail-label'>Feels Like</span>" +
+                "<span class='detail-value'>").append(value).append("</span>" +
+                "</div>");
+        }
+        else if (line.contains("Humidity")) {
+            String[] parts = line.split(",");
+            for (String part : parts) {
+                if (part.contains("Humidity")) {
+                    String value = part.replace("Humidity", "").trim();
+                    details.append(
+                        "<div class='detail-item'>" +
+                        "<span class='detail-label'>Humidity</span>" +
+                        "<span class='detail-value'>").append(value).append("</span>" +
+                        "</div>");
+                }
+                if (part.contains("Wind")) {
+                    String value = part.replace("Wind", "").trim();
+                    details.append(
+                        "<div class='detail-item'>" +
+                        "<span class='detail-label'>Wind Speed</span>" +
+                        "<span class='detail-value'>").append(value).append("</span>" +
+                        "</div>");
+                }
+            }
+        }
+        else if (line.contains("Visibility")) {
+            String value = line.replace("Visibility", "").trim();
+            details.append(
+                "<div class='detail-item'>" +
+                "<span class='detail-label'>Visibility</span>" +
+                "<span class='detail-value'>").append(value).append("</span>" +
+                "</div>");
+        }
+        else if (line.contains("AQI")) {
+            details.append(
+                "<div class='detail-item'>" +
+                "<span class='detail-label'>Air Quality</span>" +
+                "<span class='detail-value'>").append(line).append("</span>" +
+                "</div>");
+        }
+    }
+    
+    return details.toString();
+}
+  private static String parseForecastDays(String json) {
+    StringBuilder forecast = new StringBuilder();
+
+    try {
+        int start = json.indexOf("\"forecastday\":[");
+        if (start == -1) {
+            return "<p style='color:white;'>No forecast data available</p>";
+        }
+
+        String forecastPart = json.substring(start);
+
+        int count = 0;
+        int idx = 0;
+
+        while (count < 5) {
+            int dateIdx = forecastPart.indexOf("\"date\":\"", idx);
+            if (dateIdx == -1) break;
+
+            // ---- DATE ----
+            int dateStart = dateIdx + 8;
+            int dateEnd = forecastPart.indexOf("\"", dateStart);
+            String date = forecastPart.substring(dateStart, dateEnd);
+
+            // ---- MAX TEMP ----
+            double maxTemp = extractDouble(forecastPart, "\"maxtemp_c\":", dateEnd);
+
+            // ---- MIN TEMP ----
+            double minTemp = extractDouble(forecastPart, "\"mintemp_c\":", dateEnd);
+
+            // ---- CONDITION ----
+            String condition = extractString(forecastPart, "\"text\":\"", dateEnd);
+
+            // ---- RAIN ----
+            int rainChance = (int) extractDouble(forecastPart, "\"daily_chance_of_rain\":", dateEnd);
+
+            String emoji = getConditionEmoji(condition);
+            String formattedDate = formatDate(date);
+
+            forecast.append(
+                "<div class='forecast-card'>" +
+                "<div class='forecast-date'>" + formattedDate + "</div>" +
+                "<div class='forecast-icon'>" + emoji + "</div>" +
+                "<div class='forecast-temps'>" +
+                "<span class='temp-high'>" + Math.round(maxTemp) + "°</span>" +
+                "<span class='temp-low'>" + Math.round(minTemp) + "°</span>" +
+                "</div>" +
+                "<div class='forecast-condition'>" + condition + "</div>" +
+                "<div class='forecast-rain'>💧 Chance: " + rainChance + "%</div>" +
+                "</div>"
+            );
+
+            idx = dateEnd;
+            count++;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "<p style='color:white;'>Error parsing forecast</p>";
+    }
+
+    return forecast.toString();
+}
+private static double extractDouble(String src, String key, int from) {
+    int idx = src.indexOf(key, from);
+    if (idx == -1) return 0;
+    int start = idx + key.length();
+    int end = src.indexOf(",", start);
+    return Double.parseDouble(src.substring(start, end).trim());
+}
+
+private static String extractString(String src, String key, int from) {
+    int idx = src.indexOf(key, from);
+    if (idx == -1) return "";
+    int start = idx + key.length();
+    int end = src.indexOf("\"", start);
+    return src.substring(start, end);
+}
+
+
+// Get emoji based on condition
+private static String getConditionEmoji(String condition) {
+    String lower = condition.toLowerCase();
+    if (lower.contains("sunny") || lower.contains("clear")) return "☀️";
+    if (lower.contains("cloudy") || lower.contains("overcast")) return "☁️";
+    if (lower.contains("rain") || lower.contains("drizzle")) return "🌧️";
+    if (lower.contains("thunder") || lower.contains("storm")) return "⛈️";
+    if (lower.contains("snow")) return "❄️";
+    if (lower.contains("fog") || lower.contains("mist")) return "🌫️";
+    if (lower.contains("partly")) return "⛅";
+    return "🌤️";
+}
+
+// Format date from YYYY-MM-DD to something nicer
+private static String formatDate(String date) {
+    try {
+        String[] parts = date.split("-");
+        String[] months = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        int month = Integer.parseInt(parts[1]);
+        int day = Integer.parseInt(parts[2]);
+        return months[month] + " " + day;
+    } catch (Exception e) {
+        return date;
+    }
+}
 
     private static String mapEpaIndexToLabel(int idx) {
         return switch (idx) {
@@ -1306,3 +1538,4 @@ public static String getSessionToken(HttpExchange exchange) {
         }
     }
 }
+
