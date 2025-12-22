@@ -957,3 +957,209 @@ body {
     to { height: var(--h); }
 }
 
+/* ========== MODERN WEATHER RESULT PAGE ========== */
+
+.weather-result-body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.weather-container {
+    max-width: 900px;
+    width: 90%;
+    margin: 40px auto;
+}
+
+/* Current Weather Card */
+.current-weather-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+}
+
+.weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.city-name {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.weather-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.current-temp-section {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.temp-display {
+    font-size: 72px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+}
+
+.weather-icon-large {
+    font-size: 80px;
+}
+
+.weather-condition {
+    font-size: 24px;
+    color: #64748b;
+    margin-top: 10px;
+}
+
+.weather-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 18px;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* Forecast Section */
+.forecast-section {
+    margin-top: 30px;
+}
+
+.forecast-title {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.forecast-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+}
+
+
+.forecast-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 25px 20px;
+    min-width: 180px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.forecast-card:hover {
+    transform: translateY(-5px);
+}
+
+.forecast-date {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 15px;
+}
+
+.forecast-icon {
+    font-size: 48px;
+    margin: 10px 0;
+}
+
+.forecast-temps {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.temp-high {
+    font-size: 20px;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+.temp-low {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.forecast-condition {
+    font-size: 14px;
+    color: #64748b;
+    margin: 10px 0;
+}
+
+.forecast-rain {
+    font-size: 13px;
+    color: #0284c7;
+    font-weight: 600;
+}
+
+/* Back Button */
+.back-button {
+    display: block;
+    width: fit-content;
+    margin: 30px auto 0;
+    padding: 15px 40px;
+    background: white;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Powered by text */
+.powered-by {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin-top: 20px;
+}
