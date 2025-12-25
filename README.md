@@ -94,13 +94,6 @@ Example fields to check:
 * Password
 * Port (usually 3306)
 
----
-
-##  Interview Explanation (Short)
-
-> This is a core Java web application built using Java's built-in HttpServer API. It uses JDBC for MySQL connectivity and serves static HTML/CSS files as the frontend. The project avoids heavy frameworks to clearly demonstrate backend fundamentals.
-
----
 
 ## Notes
 
