@@ -13,7 +13,7 @@
             <img src="/images/logo.png" alt="Logo">
         </div>
         <div class="nav-titles">
-            <div class="nav-app-name">Weather Dashboard</div>
+            <div class="nav-app-name">AQI</div>
             <div class="nav-app-subtitle">Hi, {{USERNAME}}</div>
         </div>
     </div>
@@ -25,8 +25,14 @@
     
 
     {{PROFILE_LINK}}
-    <a href="/information" class="nav-link {{ACTIVE_INFO}}">Information</a>
+    <a href="/blogs" class="nav-link {{ACTIVE_INFO}}">Blogs</a>
     {{AUTH_LINK}}
+
+    <a href="/rankings" class="nav-link {{ACTIVE_RANKINGS}}">Rankings</a>
+
+    <a href="/about" class="nav-link {{ACTIVE_ABOUT}}">About Us</a>
+
+
 </div>
 
     </nav>
@@ -49,6 +55,48 @@
             </div>
         </div>
     </section>
+   <section class="card weather-card">
+
+  <div class="weather-left">
+    <h2>{{CITY_NAME}} Weather Conditions</h2>
+    <p class="muted">Current Temperature Level</p>
+
+    <div class="temp-row">
+      <span class="temp">{{TEMP_C}}</span>
+      <div class="weather-info">
+        <div>{{WEATHER_ICON}} {{CONDITION}}</div>
+        <div>Feels Like {{FEELS_LIKE}}</div>
+        <div>Humidity {{HUMIDITY}}</div>
+      </div>
+    </div>
+
+    <span class="badge pleasant">{{WEATHER_BADGE}}</span>
+
+    <p class="updated">
+      Last Updated: {{LAST_UPDATED}}
+    </p>
+  </div>
+
+  <div class="weather-center">
+    <img src="/images/character.png" alt="Weather Character">
+  </div>
+
+  <div class="weather-right {{AQI_CLASS}}">
+
+    <h4>Air Quality Index</h4>
+    <div class="aqi-value">{{AQI}} <span>AQI</span></div>   
+
+    <div class="aqi-meta">
+      <span>PM2.5: {{PM25}}</span>
+      <span>PM10: {{PM10}}</span>
+    </div>
+
+    <p class="aqi-status">Air quality is <b>{{AQI_STATUS}}</b></p>
+  </div>
+
+</section>
+
+
 
     <section class="card">
         <div class="card-header">
@@ -115,6 +163,11 @@
     </div>
 
 </main>
+<script>
+  setInterval(() => {
+    window.location.reload();
+  }, 300000); // refresh every 5 minutes
+</script>
 
 </body>
 </html>
