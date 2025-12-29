@@ -197,21 +197,43 @@ body {
     height: 26px;
     object-fit: contain;
 }
-
 .nav-titles {
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
 
+
+/* ===== AQI BRAND LOGO (CLEAN & MODERN) ===== */
 .nav-app-name {
-    font-weight: 700;
-    font-size: 18px;
+    font-size: 42px;          /* bigger */
+    font-weight: 500;         /* not fat */
+    letter-spacing: 0.4px;    /* subtle */
+
+    background: linear-gradient(
+        90deg,
+        #0ea5e9,   /* air / sky blue */
+        #22c55e    /* environment green */
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* fallback */
+    color: #0ea5e9;
 }
+
+
 
 .nav-app-subtitle {
-    font-size: 13px;
-    color: #6b7280;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+    margin-top: 2px;
+    white-space: nowrap;
 }
+
+
 
 .top-nav-right {
     display: flex;
@@ -567,19 +589,21 @@ body {
     color: #374151;
     margin-bottom: 12px;
 }
-/* ===== TOP NAV TWEAKS (Dashboard / Profile / Logout spacing) ===== */
 .top-nav {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 40px;
-    background: #ffffff;
-    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.04);
     position: sticky;
     top: 0;
     z-index: 20;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 8px 32px;     /* 🔥 reduced */
+    background: #ffffff;
+    box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
 }
+
+
 
 .nav-left {
     display: flex;
@@ -819,14 +843,15 @@ body {
 }
 
 .nav-logo-circle {
-    width: 60px;              /* or whatever size you want */
-    height: 60px;
-    border-radius: 20px;      /* your existing rounded container */
-    overflow: hidden;         /* IMPORTANT: removes leftover padding around logo */
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 
 .nav-logo-circle img {
     width: 100%;              /* fill container horizontally */
@@ -1162,4 +1187,261 @@ body {
     color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
     margin-top: 20px;
+}
+/* ===== COLORFUL AQI LOGO TEXT ===== */
+.app-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+
+    /* Gradient text */
+    background: linear-gradient(
+        90deg,
+        #0ea5e9,   /* blue */
+        #22c55e,   /* green */
+        #facc15,   /* yellow */
+        #ef4444    /* red */
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* fallback for unsupported browsers */
+    color: #0ea5e9;
+}
+/* ===== WEATHER + AQI DASHBOARD CARD ===== */
+
+.weather-aqi-card {
+    display: flex;
+    gap: 32px;
+    align-items: stretch;
+}
+
+.weather-aqi-left {
+    flex: 2;
+}
+
+.weather-aqi-left h2 {
+    font-size: 26px;
+    margin-bottom: 6px;
+}
+
+.subtext {
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.temp-row {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+}
+
+.temp-big {
+    font-size: 64px;
+    font-weight: 800;
+}
+
+.temp-big span {
+    font-size: 28px;
+}
+
+.weather-meta {
+    line-height: 1.6;
+    color: #374151;
+}
+
+.badge.pleasant {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 600;
+}
+
+.updated-text {
+    margin-top: 14px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* AQI SIDE */
+.weather-aqi-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.aqi-box {
+    width: 100%;
+    padding: 24px;
+    border-radius: 18px;
+    background: #fee2e2;
+}
+
+.aqi-box h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.aqi-number {
+    font-size: 42px;
+    font-weight: 800;
+    color: #b91c1c;
+}
+
+.aqi-number span {
+    font-size: 14px;
+}
+
+.aqi-details {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.aqi-status {
+    margin-top: 12px;
+    font-size: 14px;
+}
+.weather-card {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.weather-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.weather-center img {
+  height: 220px;
+  max-width: 100%;
+}
+
+.temp-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.temp {
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.weather-info div {
+  font-size: 14px;
+  color: #475569;
+}
+
+.badge.pleasant {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.weather-right {
+  background: #fee2e2;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.aqi-value {
+  font-size: 42px;
+  font-weight: 800;
+  color: #b91c1c;
+}
+
+.aqi-value span {
+  font-size: 14px;
+}
+
+.aqi-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.aqi-status {
+  margin-top: 12px;
+  font-size: 14px;
+}
+.aqi-good {
+  background: #dcfce7;
+}
+
+.aqi-moderate {
+  background: #fef9c3;
+}
+
+.aqi-unhealthy {
+  background: #fee2e2;
+}
+
+.aqi-danger {
+  background: #fecaca;
+}
+/* Improve label spacing in profile form */
+.profile-card label {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #475569;
+}
+/* ===== AVATAR ===== */
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.avatar-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e5e7eb;
+}
+
+.avatar-btn {
+  font-size: 14px;
+  color: #4f46e5;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* ===== SUCCESS MESSAGE ===== */
+
+.success-box {
+  background: #ecfdf5;
+  border-left: 4px solid #10b981;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  color: #065f46;
+  animation: slideFade 0.4s ease-out;
+}
+
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
