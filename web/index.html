@@ -2,75 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Information</title>
+    <title>Weather App • Login</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="app-body">
-
-<header class="top-nav">
-    <div class="top-nav-left">
-        <div class="nav-logo-circle">
+<body class="auth-body">
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
             <img src="/images/logo.png" alt="Logo">
         </div>
-        <div class="nav-titles">
-            <div class="nav-app-name">Weather Dashboard</div>
-            <div class="nav-app-subtitle">Hi, {{USERNAME}}</div>
-        </div>
-    </div>
-
-    <nav class="top-nav-right">
-        <div class="nav-links">
-            <a href="/home" class="nav-link {{ACTIVE_HOME}}">Dashboard</a>
-            {{PROFILE_LINK}}
-            <a href="/information" class="nav-link {{ACTIVE_INFO}}">Information</a>
-            {{AUTH_LINK}}
-        </div>
-    </nav>
-</header>
-
-<main class="app-main">
-
-    <section class="card">
-        <h2>Nature & Environment</h2>
-
-        <p class="card-subtitle">
-            Nature is everything around us — the sky, water, trees, wind, sunlight.
-            It heals, grows, and moves without asking anything in return.
+        <h1 class="auth-title">Weather App</h1>
+        <p class="auth-subtitle">
+            Sign in to check the weather and manage your cities.
         </p>
 
-        
+        <form action="/doLogin" method="post" class="auth-form">
+            <label class="auth-label">Email</label>
+            <div class="auth-input-wrap">
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
 
-        <div style="margin-top: 16px; display: flex; gap: 16px; flex-wrap: wrap;">
+            <label class="auth-label">Password</label>
+            <div class="auth-input-wrap">
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
 
+            <button type="submit" class="btn-primary auth-btn">
+                Sign In
+            </button>
+        </form>
 
-
-         <video 
-    autoplay 
-    loop 
-    muted 
-    playsinline
-    controlslist="nodownload noplaybackrate noremoteplayback"
-    oncontextmenu="return false;"
-    style="width: 800px; border-radius: 29px; margin-top: 20px; pointer-events: none;"
-    >
-    <source src="/videos/GreenVideo.mp4" type="video/mp4">
-</video>
-
-
-  
-
-            <img src="/images/1.png" alt="Nature" style="width: 800px; border-radius: 30px;">
-            <img src="/images/2.png" alt="Nature" style="width: 800px; border-radius: 30px;">
-            <img src="/images/3.png" alt="Nature" style="width: 800px; border-radius: 30px;">
-            <img src="/images/4.png" alt="Nature" style="width: 800px; border-radius: 30px;">
-            <img src="/images/5.png" alt="Nature" style="width: 800px; border-radius: 30px;">
-            <img src="/images/6.png" alt="Nature" style="width: 800px; border-radius: 30px;">
-            <!-- add more images later -->
-        </div>
-
-    </section>
-
-</main>
-
+        <p class="auth-footer-text">
+            Don’t have an account?
+            <a href="/register" class="auth-link">Create Account</a>
+        </p>
+    </div>
+</div>
 </body>
 </html>
