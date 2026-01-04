@@ -1,54 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Profile</title>
-    <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Settings</title>
+
+  <!-- AQI GLOBAL STYLES -->
+  <link rel="stylesheet" href="/styles.css">
+
+  <!-- PROFILE ONLY -->
+  <link rel="stylesheet" href="/profile.css">
 </head>
+
 <body class="app-body">
 
+<!-- ===== AQI HEADER (SAME AS HOME) ===== -->
 <header class="top-nav">
-    <div class="top-nav-left">
-        <div class="nav-logo-circle">
-            <img src="/images/logo.png" alt="Logo">
-        </div>
-        <div class="nav-titles">
-            <div class="nav-app-name">Weather Dashboard</div>
-            <div class="nav-app-subtitle">Hi, {{USERNAME}}</div>
-        </div>
+  <div class="top-nav-left">
+    <div class="nav-logo-circle">
+      <img src="/images/logo.png" alt="AQI Logo">
     </div>
 
-    <nav class="top-nav-right">
-        <div class="nav-links">
-            <a href="/home" class="nav-link {{ACTIVE_HOME}}">Dashboard</a>
-            {{PROFILE_LINK}}
-            <a href="/information" class="nav-link {{ACTIVE_INFO}}">Information</a>
-            {{AUTH_LINK}}
-        </div>
-    </nav>
+    <div class="nav-titles">
+      <div class="nav-app-name">AQI</div>
+      <div class="nav-app-subtitle">Hi, {{USERNAME}}</div>
+    </div>
+  </div>
+
+  <nav class="top-nav-right">
+    <div class="nav-links">
+      <a href="/home" class="nav-link">Dashboard</a>
+      <a href="/rankings" class="nav-link">Rankings</a>
+      <a href="/blogs" class="nav-link">Blogs</a>
+      <a href="/profile" class="nav-link nav-link-active">Profile</a>
+    </div>
+  </nav>
 </header>
 
-<main class="page-main">
-    <section class="card profile-card">
-        <h1 class="card-title">Profile Settings</h1>
-        <p class="card-subtitle">Update your basic account details.</p>
+<!-- ===== MAIN ===== -->
+<main class="app-main profile-page">
 
-        <form action="/updateProfile" method="post" class="profile-form">
-            <label class="field-label">Full Name</label>
-            <input type="text" name="name" class="text-input" value="{{NAME}}" required>
+  <div class="profile-grid">
 
-            <label class="field-label">Email</label>
-            <input type="email" name="email" class="text-input" value="{{EMAIL}}" required>
+    <!-- LEFT: PROFILE FORM -->
+    <section class="profile-card">
+      <h2>Edit Profile</h2>
+      <p>Update your photo and personal details.</p>
 
-            <label class="field-label">Password</label>
-            <input type="password" name="password" class="text-input" placeholder="New password" required>
+      <form onsubmit="return false;" class="profile-form">
 
-            <button type="submit" class="btn-primary profile-save-btn">Save Changes</button>
-        </form>
+        <!-- Avatar -->
+        <div class="avatar-section">
+          <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
+            <img
+              src="/images/default-avatar.png"
+              class="profile-avatar"
+              id="avatarPreview"
+              alt="Profile Picture"
+            />
+            <div class="avatar-overlay">Change</div>
+          </div>
+          <input type="file" id="avatarInput" accept="image/*" hidden onchange="previewAvatar(event)">
+        </div>
 
-        <!-- PROFILE_STATUS -->
+        <label>Name</label>
+        <input type="text" value="{{NAME}}" required>
+
+        <label>Email</label>
+        <input type="email" value="{{EMAIL}}" readonly>
+
+        <label>New Password</label>
+        <input type="password" placeholder="Leave blank to keep current">
+
+        <button type="submit">Save Changes</button>
+      </form>
     </section>
+
+    <!-- RIGHT: STATUS -->
+    <section class="profile-side-card">
+      <h3>Account Status</h3>
+      <ul>
+        <li>✅ <strong>Verified Account</strong></li>
+        <li>📍 <strong>Region:</strong> Solapur</li>
+        <li>📅 <strong>Member since:</strong> 2024</li>
+      </ul>
+    </section>
+
+  </div>
 </main>
+
+<script>
+const userEmail = "{{EMAIL}}";
+const AVATAR_KEY = "profile_avatar_" + userEmail;
+
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem(AVATAR_KEY);
+  if (saved) document.getElementById("avatarPreview").src = saved;
+});
+
+function previewAvatar(e) {
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith("image/")) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById("avatarPreview").src = reader.result;
+    localStorage.setItem(AVATAR_KEY, reader.result);
+  };
+  reader.readAsDataURL(file);
+}
+</script>
 
 </body>
 </html>

@@ -1,0 +1,125 @@
+/* =========================================================
+   AIR QUALITY RANKINGS – APP-CONSISTENT STYLES
+   ========================================================= */
+
+/* ===== PAGE TITLE ===== */
+.rankings-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 12px 0 4px;
+    color: #0f172a;
+}
+
+.rankings-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+/* ===== BADGE ===== */
+.badge-danger {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b91c1c;
+    background: #fee2e2;
+    border-radius: 999px;
+}
+
+/* ===== CARD WRAPPER ===== */
+.rankings-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+/* ===== TABLE ===== */
+.aq-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.aq-table thead {
+    background: #f8fafc;
+}
+
+.aq-table th {
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.aq-table td {
+    padding: 16px 18px;
+    border-top: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+/* ===== ROW HOVER ===== */
+.aq-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* ===== CITY CELL ===== */
+.city-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.city-cell img {
+    width: 22px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+/* ===== AQI VALUE ===== */
+.aqi-meter {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 999px;
+}
+
+.aqi-hazardous {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.aqi-very-unhealthy {
+    background: #ffe4e6;
+    color: #9f1239;
+}
+
+.aqi-unhealthy {
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.aqi-moderate {
+    background: #ecfeff;
+    color: #155e75;
+}
+
+/* ===== AQI STATUS ===== */
+.status.hazardous {
+    font-weight: 700;
+    color: #dc2626;
+}
+
+/* ===== FOLLOW ICON ===== */
+.follow-icon {
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.follow-icon:hover {
+    color: #111827;
+}

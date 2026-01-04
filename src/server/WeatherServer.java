@@ -5,6 +5,14 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import dao.DBUtil;
+import server.WeatherServer.ProfileHandler.ImageHandler;
+import server.WeatherServer.ProfileHandler.LoginHandler;
+import server.WeatherServer.ProfileHandler.RegisterHandler;
+import server.WeatherServer.ProfileHandler.SaveLocationHandler;
+import server.WeatherServer.ProfileHandler.StaticVideoHandler;
+import server.WeatherServer.ProfileHandlerb.UpdateProfileHandler;
+import server.WeatherServer.ProfileHandler.WeatherHandler;
+
 import java.io.*;
 import java.net.HttpURLConnection; // Assuming DBUtil exists and provides Connection
 import java.net.InetSocketAddress;
@@ -18,6 +26,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WeatherServer {
+    
 
     private static final String WEB_ROOT = "web"; // folder where your HTML/CSS/images are
     // simple in-memory sessions: token -> displayName
@@ -35,7 +45,7 @@ public class WeatherServer {
             "5773a4cdf02541c990973658252711"; // your key
 
     private static final String WEATHER_API_BASE_URL =
-            "https://api.weatherapi.com/v1/current.json";
+            "https://api.weatherapi.com/v1/forecast.json";
 
     public static void main(String[] args) {
         try {
@@ -46,12 +56,21 @@ public class WeatherServer {
             server.createContext("/", new HomeHandler());
             server.createContext("/home", new HomeHandler());
             server.createContext("/dashboard", new HomeHandler());
+            
+        
+
+        server.createContext("/rankings", new AirQualityRankingHandler());
+     server.createContext("/about", new AboutHandler());
+
+
+
+
              // DashboardHandler removed from routing
 
             // login page (index.html)
             server.createContext("/login", new FileHandler("index.html", "text/html"));
 
-            server.createContext("/locations", new FileHandler("locations.html", "text/html"));
+           // server.createContext("/locations", new FileHandler("locations.html", "text/html"));
             
             server.createContext("/register", new FileHandler("register.html", "text/html"));
 
@@ -59,12 +78,16 @@ public class WeatherServer {
             
             // use external InformationHandler class (src/server/InformationHandler.java)
             
-            server.createContext("/information", new InformationHandler());
+            server.createContext("/blogs", new BlogsHandler());
+
             server.createContext("/logout", new LogoutHandler());
 
             // ========== STATIC ASSETS ==========
             server.createContext("/styles.css", new FileHandler("styles.css", "text/css"));
-            
+            server.createContext("/blogs.css", new FileHandler("blogs.css", "text/css"));
+            server.createContext("/rankings.css", new FileHandler("rankings.css", "text/css"));
+            server.createContext("/about.css", new FileHandler("about.css", "text/css"));
+            server.createContext("/profile.css", new FileHandler("profile.css", "text/css"));
             server.createContext("/images", new ImageHandler());
             server.createContext("/videos", new StaticVideoHandler());
 
@@ -74,6 +97,7 @@ public class WeatherServer {
             server.createContext("/getWeather", new WeatherHandler());
             server.createContext("/saveLocation", new SaveLocationHandler());
             server.createContext("/updateProfile", new UpdateProfileHandler());
+            
 
             server.setExecutor(null);
             server.start();
@@ -137,6 +161,7 @@ public class WeatherServer {
 
             // load the HTML
             File file = new File(WEB_ROOT, "home.html");
+            
             if (!file.exists() || !file.isFile()) {
                 String notFound = "404 - File not found (home.html)";
                 byte[] bytes = notFound.getBytes(StandardCharsets.UTF_8);
@@ -151,6 +176,73 @@ public class WeatherServer {
             try (FileInputStream fis = new FileInputStream(file)) {
                 html = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
             }
+            // ===== DASHBOARD DEFAULT WEATHER (SOLAPUR) =====
+try {
+    String city = "Solapur";
+
+    String json = fetchWeatherJsonFromApi(city);
+    String summary = parseWeatherSummary(json);
+
+    String temp = extractTemp(summary);
+    String condition = extractCondition(summary);
+    String icon = getWeatherEmoji(summary);
+
+    String feelsLike = extractLine(summary, "Feels like");
+    String humidity = extractLine(summary, "Humidity");
+
+    int pm25 = extractPm(json, "\"pm2_5\":");
+    int pm10 = extractPm(json, "\"pm10\":");
+    int aqi = pm25ToAqi(pm25);
+    // AQI COLOR CLASS
+String aqiClass =
+        aqi <= 50 ? "aqi-good" :
+        aqi <= 100 ? "aqi-moderate" :
+        aqi <= 150 ? "aqi-unhealthy" :
+        "aqi-danger";
+
+html = html.replace("{{AQI_CLASS}}", aqiClass);
+
+
+    String aqiStatus =
+        aqi <= 50 ? "GOOD" :
+        aqi <= 100 ? "MODERATE" :
+        aqi <= 150 ? "UNHEALTHY" :
+        aqi <= 200 ? "VERY UNHEALTHY" :
+        "HAZARDOUS";
+
+
+    html = html.replace("{{CITY_NAME}}", city);
+    html = html.replace("{{TEMP_C}}", temp);
+    html = html.replace("{{CONDITION}}", condition);
+    html = html.replace("{{WEATHER_ICON}}", icon);
+    html = html.replace("{{FEELS_LIKE}}", feelsLike);
+    html = html.replace("{{HUMIDITY}}", humidity);
+    html = html.replace("{{AQI}}", String.valueOf(aqi));
+    html = html.replace("{{PM25}}", String.valueOf(pm25));
+    html = html.replace("{{PM10}}", String.valueOf(pm10));
+    html = html.replace("{{AQI_STATUS}}", aqiStatus);
+    String weatherBadge =
+        aqi <= 50 ? "Excellent" :
+        aqi <= 100 ? "Pleasant" :
+        aqi <= 150 ? "Moderate" :
+        "Poor";
+
+html = html.replace("{{WEATHER_BADGE}}", weatherBadge);
+
+
+
+
+
+    html = html.replace("{{LAST_UPDATED}}",
+    java.time.LocalDateTime.now()
+        .withNano(0)
+        .toString()
+        .replace("T", " "));
+
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
 
             // navbar name + template
             html = html.replace("Hi, User", "Hi, " + escapeHtml(displayName));
@@ -160,6 +252,7 @@ public class WeatherServer {
             html = html.replace("{{ACTIVE_HOME}}", "nav-link-active");
             html = html.replace("{{ACTIVE_PROFILE}}", "");
             html = html.replace("{{ACTIVE_INFO}}", "");
+            html = html.replace("{{ACTIVE_RANKINGS}}", "");
 
             // Decide what to show in navbar: Login or Logout
 if (loggedIn) {
@@ -380,296 +473,406 @@ if (loggedIn) {
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
             }
-        }
+        }   
     }
 
-    // ---------- Profile page (dynamic, from DB) ----------
+  // ---------- Profile page (dynamic, from DB) ----------
+static class ProfileHandler implements HttpHandler {
+    @Override
     static class ProfileHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String userName = getUserFromSession(exchange);
-            String userEmail = getUserEmailFromCookie(exchange);
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String userName = getUserFromSession(exchange);
+        String userEmail = getUserEmailFromCookie(exchange);
 
-            boolean loggedIn = userName != null && !userName.isBlank() && userEmail != null;
+        boolean loggedIn = userName != null && !userName.isBlank() && userEmail != null;
 
-            if (!loggedIn) {
-                Headers headers = exchange.getResponseHeaders();
-                headers.add("Location", "/login");
-                exchange.sendResponseHeaders(302, -1);
-                exchange.close();
-                return;
-            }
+        if (!loggedIn) {
+            Headers headers = exchange.getResponseHeaders();    
+            headers.add("Location", "/login");
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+            return;
+        }
 
-            File file = new File(WEB_ROOT, "profile.html");
-            if (!file.exists() || !file.isFile()) {
-                String notFound = "404 - File not found (profile.html)";
-                byte[] bytes = notFound.getBytes(StandardCharsets.UTF_8);
-                exchange.sendResponseHeaders(404, bytes.length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(bytes);
-                }
-                return;
-            }
-
-            String html;
-            try (FileInputStream fis = new FileInputStream(file)) {
-                html = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
-            }
-
-            // Fetch latest name + email from DB
-            String dbName = userName;
-            String dbEmail = userEmail;
-
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "SELECT name, email FROM users WHERE email = ?")) {
-
-                ps.setString(1, userEmail);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        dbName = rs.getString("name");
-                        dbEmail = rs.getString("email");
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            if (dbName == null || dbName.isBlank()) dbName = dbEmail;
-
-            // Populate profile data for the form placeholders
-            html = html.replace("{{NAME}}", escapeHtml(dbName));
-            html = html.replace("{{EMAIL}}", escapeHtml(dbEmail));
-
-            // Set active nav link
-            html = html.replace("{{USERNAME}}", escapeHtml(userName));
-            html = html.replace("{{ACTIVE_HOME}}", "");
-            html = html.replace("{{ACTIVE_PROFILE}}", "nav-link-active");
-            html = html.replace("{{ACTIVE_INFO}}", "");
-            html = html.replace("{{STATUS_MESSAGE}}", ""); // no status initially
-            // Show Logout in navbar on profile (user is definitely logged in here)
-            html = html.replace("{{PROFILE_LINK}}",
-        "<a href=\"/profile\" class=\"nav-link {{ACTIVE_PROFILE}}\">Profile</a>");
-html = html.replace("{{AUTH_LINK}}",
-        "<a href=\"/logout\" class=\"nav-link nav-link-danger\">Logout</a>");
-
-        html = html.replace("{{AUTH_LINK}}",
-        "<a href=\"/logout\" class=\"nav-link nav-link-danger\">Logout</a>");
-
-
-            byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
-            Headers headers = exchange.getResponseHeaders();
-            headers.add("Content-Type", "text/html; charset=UTF-8");
-            exchange.sendResponseHeaders(200, bytes.length);
+        File file = new File(WEB_ROOT, "profile.html");
+        if (!file.exists() || !file.isFile()) {
+            String notFound = "404 - File not found (profile.html)";
+            byte[] bytes = notFound.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(404, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
             }
+            return;
+        }
+
+        String html;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            html = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+        }
+        
+        // ✅ INJECT NAVBAR with correct active page
+        html = html.replace("{{NAVBAR}}", renderNavbar(exchange, "profile"));
+
+        // Fetch latest name + avatar from DB
+        String dbName = userName;
+        String dbEmail = userEmail;
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT name, avatar FROM users WHERE email = ?")) {
+
+            ps.setString(1, userEmail);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    dbName = rs.getString("name");
+                    String avatar = rs.getString("avatar");
+
+                    if (avatar == null || avatar.isBlank()) {
+                        html = html.replace("{{AVATAR_URL}}", "/images/default-avatar.png");
+                    } else {
+                        html = html.replace(
+                            "{{AVATAR_URL}}",
+                            "/images/" + avatar + "?t=" + System.currentTimeMillis()
+                        );
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (dbName == null || dbName.isBlank()) dbName = dbEmail;
+
+        // Populate profile data
+        html = html.replace("{{NAME}}", escapeHtml(dbName));
+        html = html.replace("{{EMAIL}}", escapeHtml(dbEmail));
+        html = html.replace("{{USERNAME}}", escapeHtml(dbName));
+        html = html.replace("{{STATUS_MESSAGE}}", "");
+        
+        // ❌ REMOVE ALL THESE - They're already in the navbar:
+        // html = html.replace("{{ACTIVE_HOME}}", "");
+        // html = html.replace("{{ACTIVE_PROFILE}}", "nav-link-active");
+        // html = html.replace("{{ACTIVE_INFO}}", "");
+        // html = html.replace("{{PROFILE_LINK}}", ...);
+        // html = html.replace("{{AUTH_LINK}}", ...);
+
+        byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
+        Headers headers = exchange.getResponseHeaders();
+        headers.add("Content-Type", "text/html; charset=UTF-8");
+        exchange.sendResponseHeaders(200, bytes.length);
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(bytes);
         }
     }
+}
 
-    // ---------- Profile update handler ----------
+   
+   // ================== FIXED UPDATE HANDLER ==================
     static class UpdateProfileHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            System.out.println(">>> Update Profile Request Received"); // Debug
+
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.sendResponseHeaders(405, -1);
                 return;
             }
 
-            String currentEmail = getUserEmailFromCookie(exchange);
-            String sessionToken = getSessionToken(exchange);
-
-            if (currentEmail == null || sessionToken == null) {
-                Headers headers = exchange.getResponseHeaders();
-                headers.add("Location", "/login");
+            String userEmail = getUserEmailFromCookie(exchange);
+            if (userEmail == null) {
+                System.out.println(">>> User not logged in"); // Debug
+                exchange.getResponseHeaders().add("Location", "/login");
                 exchange.sendResponseHeaders(302, -1);
-                exchange.close();
                 return;
             }
 
-            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-
-            String newName = "";
-            String newEmail = "";
-            String newPassword = "";
-
-            String[] pairs = body.split("&");
-            for (String pair : pairs) {
-                String[] kv = pair.split("=", 2);
-                if (kv.length == 2) {
-                    String key = URLDecoder.decode(kv[0], "UTF-8");
-                    String value = URLDecoder.decode(kv[1], "UTF-8");
-                    if ("name".equals(key)) newName = value;
-                    else if ("email".equals(key)) newEmail = value;
-                    else if ("password".equals(key)) newPassword = value;
-                }
-            }
-
-            boolean ok = false;
-            String dbError = null;
-
-            if (!newName.isBlank() && !newEmail.isBlank() && !newPassword.isBlank()) {
-                try (Connection conn = DBUtil.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(
-                             "UPDATE users SET name = ?, email = ?, password = ? WHERE email = ?")) {
-
-                    ps.setString(1, newName);
-                    ps.setString(2, newEmail);
-                    ps.setString(3, newPassword);
-                    ps.setString(4, currentEmail);
-
-                    ok = ps.executeUpdate() > 0;
-
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    dbError = e.getMessage();
-                }
-            } else {
-                dbError = "All fields are required.";
-            }
-
-            // reload profile.html with status message
-            File file = new File(WEB_ROOT, "profile.html");
-            if (!file.exists() || !file.isFile()) {
-                exchange.sendResponseHeaders(500, -1);
+            String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+            if (contentType == null || !contentType.contains("multipart/form-data")) {
+                System.out.println(">>> Content type is not multipart: " + contentType); // Debug
+                exchange.sendResponseHeaders(400, -1);
                 return;
             }
 
-            String html;
-            try (FileInputStream fis = new FileInputStream(file)) {
-                html = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+            // 1. Extract Boundary safely
+            String boundary = "";
+            for (String part : contentType.split(";")) {
+                part = part.trim();
+                if (part.startsWith("boundary=")) {
+                    boundary = part.substring("boundary=".length());
+                    // Remove quotes if present
+                    if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
+                        boundary = boundary.substring(1, boundary.length() - 1);
+                    }
+                    break;
+                }
             }
 
-            String statusHtml;
-            if (ok) {
-                // update session display name + email cookie
-                String displayName = newName.isBlank() ? newEmail : newName;
-                SESSIONS.put(sessionToken, displayName);
-
-                Headers headers = exchange.getResponseHeaders();
-                // update email cookie
-                String encodedEmail = URLEncoder.encode(newEmail, StandardCharsets.UTF_8);
-                headers.add("Set-Cookie", "userEmail=" + encodedEmail + "; Path=/; HttpOnly");
-
-                statusHtml =
-                        "<div class='success-box'>" +
-                        "<p><b>Profile updated successfully ✔</b></p>" +
-                        "</div>";
-
-                html = html.replace("Hi, User", "Hi, " + escapeHtml(displayName));
-                html = html.replace("{{NAME}}", escapeHtml(newName));
-                html = html.replace("{{EMAIL}}", escapeHtml(newEmail));
-
-            } else {
-                // keep old values in form
-                String displayName = getUserFromSession(exchange);
-                if (displayName == null) displayName = currentEmail;
-
-                html = html.replace("Hi, User", "Hi, " + escapeHtml(displayName));
-
-                String displayFormName = newName.isBlank() ? displayName : newName;
-                String displayFormEmail = newEmail.isBlank() ? currentEmail : newEmail;
-
-                html = html.replace("{{NAME}}", escapeHtml(displayFormName));
-                html = html.replace("{{EMAIL}}", escapeHtml(displayFormEmail));
-
-                statusHtml =
-                        "<div class='success-box' style='background:#fef2f2;border-left-color:#dc2626;color:#991b1b;'>" +
-                        "<p><b>Could not update profile.</b></p>" +
-                        "<p style='font-size:12px;'>" + escapeHtml(dbError == null ? "Unknown error" : dbError) + "</p>" +
-                        "</div>";
+            if (boundary.isEmpty()) {
+                System.out.println(">>> No boundary found in header"); // Debug
+                exchange.sendResponseHeaders(400, -1);
+                return;
             }
 
-            // Set active nav link & username & status
-            String sessionName = getUserFromSession(exchange);
-            if (sessionName == null) sessionName = currentEmail;
+            // The body uses "--" + boundary
+            String finalBoundary = "--" + boundary;
+            
+            // 2. Read the entire body
+            byte[] bodyBytes = exchange.getRequestBody().readAllBytes();
+            System.out.println(">>> Body bytes read: " + bodyBytes.length); // Debug
 
-            html = html.replace("{{USERNAME}}", escapeHtml(sessionName));
-            html = html.replace("{{ACTIVE_HOME}}", "");
-            html = html.replace("{{ACTIVE_PROFILE}}", "nav-link-active");
-            html = html.replace("{{ACTIVE_INFO}}", "");
-            html = html.replace("{{STATUS_MESSAGE}}", statusHtml);
-            html = html.replace("{{PROFILE_LINK}}",
-        "<a href=\"/profile\" class=\"nav-link {{ACTIVE_PROFILE}}\">Profile</a>");
-html = html.replace("{{AUTH_LINK}}",
-        "<a href=\"/logout\" class=\"nav-link nav-link-danger\">Logout</a>");
-
-            html = html.replace("{{AUTH_LINK}}",
-        "<a href=\"/logout\" class=\"nav-link nav-link-danger\">Logout</a>");
-        
+            // 3. Extract Data
+            String name = extractMultipartField(bodyBytes, finalBoundary, "name");
+           String password = extractMultipartField(bodyBytes, finalBoundary, "password");
 
 
-            byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
-            Headers headers = exchange.getResponseHeaders();
-            headers.add("Content-Type", "text/html; charset=UTF-8");
-            exchange.sendResponseHeaders(200, bytes.length);
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(bytes);
+
+            // Use the "Fixed" version you wrote
+String avatarPath = extractAndSaveAvatar(bodyBytes, finalBoundary, userEmail);
+
+if (avatarPath == null || avatarPath.isBlank()) {
+    avatarPath = getExistingAvatarPath(userEmail);
+}
+
+
+
+            System.out.println(">>> Extracted Name: " + name); // Debug
+            System.out.println(">>> Extracted Avatar Path: " + avatarPath); // Debug
+            System.out.println(">>> FINAL avatarPath before DB: " + avatarPath);
+
+
+            // 4. Update Database
+            try (Connection conn = DBUtil.getConnection()) {
+                // If name is empty, keep existing name
+                if (name == null || name.isBlank()) {
+                    name = getUserNameFromDB(userEmail);
+                }
+
+              
+                String sql;
+                PreparedStatement ps;
+
+                if (password != null && !password.isBlank()) {
+                    sql = "UPDATE users SET name = ?, avatar = ?, password = ? WHERE email = ?";
+                    ps = conn.prepareStatement(sql);
+                    ps.setString(1, name);
+                    ps.setString(2, avatarPath);
+                    ps.setString(3, password);
+                    ps.setString(4, userEmail);
+                } else {
+                    sql = "UPDATE users SET name = ?, avatar = ? WHERE email = ?";
+                    ps = conn.prepareStatement(sql);
+                    ps.setString(1, name);
+                    ps.setString(2, avatarPath);
+                    ps.setString(3, userEmail);
+                }
+
+                int rows = ps.executeUpdate();
+                System.out.println(">>> DB Updated, Rows affected: " + rows); // Debug
+                ps.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        }
-    }
 
-    // ---------- Logout ----------
-    static class LogoutHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String token = getSessionToken(exchange);
-            if (token != null) {
-                SESSIONS.remove(token);
-            }
-
-            Headers headers = exchange.getResponseHeaders();
-            // expire cookies
-            headers.add("Set-Cookie", "sessionId=deleted; Path=/; Max-Age=0");
-            headers.add("Set-Cookie", "userEmail=deleted; Path=/; Max-Age=0");
-            headers.add("Location", "/login");
+            // 5. Redirect back to profile
+            exchange.getResponseHeaders().add("Location", "/profile?updated=true");
             exchange.sendResponseHeaders(302, -1);
-            exchange.close();
         }
     }
 
-    // ---------- Serve images ----------
-    static class ImageHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String requestPath = exchange.getRequestURI().getPath(); // e.g. /images/logo.png
-            String fileName = requestPath.replaceFirst("/images/?", ""); // logo.png
+    // ================== FIXED MULTIPART PARSERS ==================
 
-            File imageFile = new File(WEB_ROOT + File.separator + "images", fileName);
+    /**
+     * Extracts a simple text field (like name or password)
+     */
+    private static String extractMultipartField(byte[] bodyBytes, String boundary, String fieldName) {
+        // We use ISO_8859_1 because it maps bytes 1-to-1 to characters, keeping indices valid
+        String body = new String(bodyBytes, StandardCharsets.ISO_8859_1);
+        
+        String searchKey = "name=\"" + fieldName + "\"";
+        int idx = body.indexOf(searchKey);
+        
+        if (idx == -1) return null;
 
-            if (!imageFile.exists() || !imageFile.isFile()) {
-                String notFound = "404 - Image not found";
-                byte[] bytes = notFound.getBytes(StandardCharsets.UTF_8);
-                exchange.sendResponseHeaders(404, bytes.length);
-                try (OutputStream os = exchange.getResponseBody()) {
-                    os.write(bytes);
-                }
-                return;
+        // Find the double newline indicating start of content
+        int start = body.indexOf("\r\n\r\n", idx);
+        if (start == -1) return null;
+        start += 4; // skip the \r\n\r\n
+
+        // Find the next boundary indicating end of content
+        int end = body.indexOf(boundary, start);
+        if (end == -1) return null;
+
+        // The content is between start and end (minus the trailing \r\n)
+        String value = body.substring(start, end).trim(); 
+        return new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8); // Convert back to UTF-8
+    }
+
+    /**
+     * Extracts the file binary and saves it to disk
+     */
+    private static String extractAndSaveAvatar(byte[] bodyBytes, String boundary, String userEmail) {
+        try {
+            // Map bytes to string for searching
+            String body = new String(bodyBytes, StandardCharsets.ISO_8859_1);
+
+            // 1. Find the File Part
+            int nameIdx = body.indexOf("name=\"avatar\"");
+            if (nameIdx == -1) {
+                System.out.println(">>> Parser: 'name=avatar' not found");
+                return null;
             }
 
-            byte[] imageBytes;
-            try (FileInputStream fis = new FileInputStream(imageFile)) {
-                imageBytes = fis.readAllBytes();
+            // 2. Find the Filename
+            int filenameIdx = body.indexOf("filename=\"", nameIdx);
+            if (filenameIdx == -1) {
+                System.out.println(">>> Parser: 'filename=' not found (User might not have selected a file)");
+                return null;
             }
 
-            String contentType = guessImageContentType(fileName);
-            Headers headers = exchange.getResponseHeaders();
-            headers.add("Content-Type", contentType);
+            int fnStart = filenameIdx + 10;
+            int fnEnd = body.indexOf("\"", fnStart);
+            String originalFilename = body.substring(fnStart, fnEnd);
 
-            exchange.sendResponseHeaders(200, imageBytes.length);
+            if (originalFilename.isEmpty()) {
+                System.out.println(">>> Parser: Filename is empty");
+                return null;
+            }
+
+            // 3. Find Start of Binary Data (after Content-Type and blank line)
+            int partStart = body.indexOf("\r\n\r\n", filenameIdx);
+            if (partStart == -1) return null;
+            partStart += 4; // skip \r\n\r\n
+
+            // 4. Find End of Binary Data (the next boundary)
+            int partEnd = body.indexOf(boundary, partStart);
+            if (partEnd == -1) {
+                System.out.println(">>> Parser: Could not find end boundary");
+                return null;
+            }
+            
+            // Remove the \r\n that comes before the boundary
+            partEnd = partEnd - 2; 
+
+            System.out.println(">>> Parser: Saving file size: " + (partEnd - partStart) + " bytes");
+
+            // 5. Extract the exact bytes
+            byte[] imageBytes = Arrays.copyOfRange(bodyBytes, partStart, partEnd);
+
+            // 6. Ensure Directory Exists
+            File dir = new File(WEB_ROOT + File.separator + "images" + File.separator + "avatars");
+            if (!dir.exists()) {
+                boolean created = dir.mkdirs();
+                System.out.println(">>> Created directory: " + created);
+            }
+
+            // 7. Create Unique Filename
+            String extension = ".png";
+            if (originalFilename.toLowerCase().endsWith(".jpg")) extension = ".jpg";
+            if (originalFilename.toLowerCase().endsWith(".jpeg")) extension = ".jpeg";
+
+            String newFilename = "avatar_" + Math.abs(userEmail.hashCode()) + "_" + System.currentTimeMillis() + extension;
+            File targetFile = new File(dir, newFilename);
+
+            // 8. Write to Disk
+            Files.write(targetFile.toPath(), imageBytes);
+            System.out.println(">>> File Saved at: " + targetFile.getAbsolutePath());
+
+            // Return path for DB (relative to /images/)
+            return "avatars/" + newFilename;
+
+        } catch (Exception e) {
+            System.out.println(">>> Error saving avatar: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+// ✅ Helper to get file extension
+private static String getFileExtension(String filename) {
+    if (filename == null || filename.isEmpty()) {
+        return ".png";
+    }
+    int dotIndex = filename.lastIndexOf('.');
+    if (dotIndex == -1 || dotIndex == filename.length() - 1) {
+        return ".png";
+    }
+    return filename.substring(dotIndex).toLowerCase();
+}
+
+// ✅ Helper to get existing user name
+private static String getUserNameFromDB(String email) {
+    try (Connection conn = DBUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement("SELECT name FROM users WHERE email = ?")) {
+        
+        ps.setString(1, email);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("name");
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return email; // fallback to email
+}
+
+    // ---------- Serve images (FIXED) ----------
+static class ImageHandler implements HttpHandler {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String requestPath = exchange.getRequestURI().getPath(); 
+        
+        // Remove "/images" from the start
+        String fileName = requestPath.replaceFirst("^/images", "");
+        
+        // CRITICAL FIX: Remove leading slash if present (e.g., "/avatars/..." -> "avatars/...")
+        if (fileName.startsWith("/") || fileName.startsWith("\\")) {
+            fileName = fileName.substring(1);
+        }
+
+        // Now it properly joins: "web/images" + "avatars/file.png"
+        File imageFile = new File(WEB_ROOT + File.separator + "images", fileName);
+
+        if (!imageFile.exists() || !imageFile.isFile()) {
+            String notFound = "404 - Image not found";
+            exchange.sendResponseHeaders(404, notFound.length());
             try (OutputStream os = exchange.getResponseBody()) {
-                os.write(imageBytes);
+                os.write(notFound.getBytes(StandardCharsets.UTF_8));
             }
+            return;
         }
 
-        private String guessImageContentType(String fileName) {
-            String lower = fileName.toLowerCase();
-            if (lower.endsWith(".png")) return "image/png";
-            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-            if (lower.endsWith(".gif")) return "image/gif";
-            return "application/octet-stream";
+        byte[] imageBytes;
+        try (FileInputStream fis = new FileInputStream(imageFile)) {
+            imageBytes = fis.readAllBytes();
+        }
+
+        String contentType = guessImageContentType(fileName);
+        Headers headers = exchange.getResponseHeaders();
+        headers.add("Content-Type", contentType);
+        // Add cache control so the browser doesn't cache old profile pics forever
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+
+        exchange.sendResponseHeaders(200, imageBytes.length);
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(imageBytes);
         }
     }
+
+    private String guessImageContentType(String fileName) {
+        String lower = fileName.toLowerCase();
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".gif")) return "image/gif";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "application/octet-stream";
+    }
+}
 
     // ---------- REGISTER (direct JDBC) ----------
     static class RegisterHandler implements HttpHandler {
@@ -683,12 +886,12 @@ html = html.replace("{{AUTH_LINK}}",
                     status = 405;
                     html = "<html><body><h1>Method Not Allowed</h1></body></html>";
                 } else {
-                    String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                   
 
                     String name = "";
                     String email = "";
                     String password = "";
-
+                    String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                     String[] pairs = body.split("&");
                     for (String pair : pairs) {
                         String[] kv = pair.split("=", 2);
@@ -896,12 +1099,16 @@ html = html.replace("{{AUTH_LINK}}",
 
             // TRY CALLING API
             String weatherSummary;
+            String forecastHtml = "";
             try {
-                weatherSummary = fetchWeatherFromApi(cityRaw);  // LIVE API
-            } catch (Exception e) {
+            String jsonResponse = fetchWeatherJsonFromApi(cityRaw);  // Get raw JSON
+            weatherSummary = parseWeatherSummary(jsonResponse);       // Parse current weather
+            forecastHtml = parseForecastDays(jsonResponse);           // Parse forecas  t
+                }catch (Exception e) {
                 e.printStackTrace();
                 weatherSummary = "Error fetching live weather ❌";
-            }
+                forecastHtml = "";
+}
 
             // Save to weather_history if user is logged in and API worked
             String userEmail = getUserEmailFromCookie(exchange);
@@ -920,31 +1127,53 @@ html = html.replace("{{AUTH_LINK}}",
                 }
             }
 
-            String response =
-                    "<!DOCTYPE html>" +
-                    "<html><head>" +
-                    "<title>Weather Result</title>" +
-                    "<link rel='stylesheet' href='/styles.css'>" +
-                    "</head><body class='result-page'>" +
-                    "<div class='result-card'>" +
-                    "<span class='badge'>Live Weather</span>" +
-                    "<h2>Weather in " + city + "</h2>" +
-                    "<p class='result-label'>Weather & Air Quality</p>" +
-                    "<p class='result-value'>" + weatherSummary + "</p>" +
-                    "<p class='subtitle'>Powered by WeatherAPI.com</p>" +
-                    "<a href='/home' class='btn-primary' style='display:inline-block;text-align:center;margin-top:10px;'>Back to Home</a>" +
-                    "</div></body></html>";
+     String response =
+    "<!DOCTYPE html>" +
+    "<html><head>" +
+    "<meta charset='UTF-8'>" +
+    "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+    "<title>Weather in " + city + "</title>" +
+    "<link rel='stylesheet' href='/styles.css'>" +
+    "</head>" +
+    "<body class='weather-result-body' onload='window.scrollTo(0,0)'>" +
+    "<div class='weather-container'>" +
+    "<div class='current-weather-card'>" +
+    "<div class='weather-header'>" +
+    "<h1 class='city-name'>" + city + "</h1>" +
+    "<span class='weather-badge'>Live Weather</span>" +
+    "</div>" +
+    "<div class='current-temp-section'>" +
+    "<div class='temp-display'>" + extractTemp(weatherSummary) + "</div>" +
+    "<div class='weather-icon-large'>" + getWeatherEmoji(weatherSummary) + "</div>" +
+    "</div>" +
+    "<div class='weather-condition'>" + extractCondition(weatherSummary) + "</div>" +
+    "<div class='weather-details-grid'>" +
+    extractWeatherDetails(weatherSummary) +
+    "</div>" +
+    "</div>" +
+    "<div class='forecast-section'>" +
+    "<h2 class='forecast-title'>3-Day Forecast</h2>" +
+    "<div class='forecast-cards'>" +
+    forecastHtml +
+    "</div>" +
+    "</div>" +
+    "<a href='/home' class='back-button'>← Back to Home</a>" +
+    "<p class='powered-by'>Powered by WeatherAPI.com</p>" +
+    "</div>" +
+    "</body></html>";
 
-            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-            exchange.sendResponseHeaders(200, bytes.length);
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(bytes);
-            }
-        }
+// ✅ SEND RESPONSE — THIS WAS MISSING
+byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+Headers headers = exchange.getResponseHeaders();
+headers.add("Content-Type", "text/html; charset=UTF-8");
+exchange.sendResponseHeaders(200, bytes.length);
+
+try (OutputStream os = exchange.getResponseBody()) {
+    os.write(bytes);
+}
     }
+}
 
-    // ---------- SAVE LOCATION (DB insert) ----------
     static class SaveLocationHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -1003,41 +1232,41 @@ html = html.replace("{{AUTH_LINK}}",
     // ================== UTILITIES ==================
 
     // Call WeatherAPI.com
-    private static String fetchWeatherFromApi(String city) throws IOException {
-        if (city == null || city.isBlank()) {
-            throw new IOException("City is empty");
-        }
-
-        String encodedCity = URLEncoder.encode(city, StandardCharsets.UTF_8);
-        String urlStr = WEATHER_API_BASE_URL
-                + "?key=" + WEATHER_API_KEY
-                + "&q=" + encodedCity
-                + "&aqi=yes";
-
-        HttpURLConnection conn = null;
-        try {
-            URL url = new URL(urlStr);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-
-            int code = conn.getResponseCode();
-            if (code != 200) {
-                throw new IOException("API response code: " + code);
-            }
-
-            try (InputStream is = conn.getInputStream()) {
-                String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                return parseWeatherSummary(json);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();   // will show in your server console
-            throw e;
-        } finally {
-            if (conn != null) conn.disconnect();
-        }
+   private static String fetchWeatherJsonFromApi(String city) throws IOException {
+    if (city == null || city.isBlank()) {
+        throw new IOException("City is empty");
     }
+
+    String encodedCity = URLEncoder.encode(city, StandardCharsets.UTF_8);
+    String urlStr = WEATHER_API_BASE_URL
+            + "?key=" + WEATHER_API_KEY
+            + "&q=" + encodedCity
+            + "&days=5"
+            + "&aqi=yes";
+
+    HttpURLConnection conn = null;
+    try {
+        URL url = new URL(urlStr);
+        conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(5000);
+
+        int code = conn.getResponseCode();
+        if (code != 200) {
+            throw new IOException("API response code: " + code);
+        }
+
+        try (InputStream is = conn.getInputStream()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);  // Return raw JSON
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw e;
+    } finally {
+        if (conn != null) conn.disconnect();
+    }
+}
 
     // Parse WeatherAPI.com current.json
     private static String parseWeatherSummary(String json) {
@@ -1149,6 +1378,210 @@ html = html.replace("{{AUTH_LINK}}",
             return "Live data (raw): " + json.substring(0, Math.min(120, json.length())) + "...";
         }
     }
+
+    // Extract temperature from summary
+private static String extractTemp(String summary) {
+    try {
+        int idx = summary.indexOf("°C");
+        if (idx != -1) {
+            String temp = summary.substring(0, idx + 2);
+            return temp.trim();
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return "N/A";
+}
+
+// Extract condition from summary
+private static String extractCondition(String summary) {
+    try {
+        String[] lines = summary.split("<br>");
+        if (lines.length > 0) {
+            String firstLine = lines[0];
+            int dotIdx = firstLine.indexOf("·");
+            if (dotIdx != -1) {
+                return firstLine.substring(dotIdx + 1).trim();
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return "Clear";
+}
+
+// Get weather emoji based on condition
+private static String getWeatherEmoji(String summary) {
+    String lower = summary.toLowerCase();
+    if (lower.contains("sunny") || lower.contains("clear")) return "🔆";
+    if (lower.contains("cloudy") || lower.contains("overcast")) return "🌥️";
+    if (lower.contains("rain") || lower.contains("drizzle")) return "🌧️";
+    if (lower.contains("thunder") || lower.contains("storm")) return "⛈️";
+    if (lower.contains("snow")) return "❄️";
+    if (lower.contains("fog") || lower.contains("mist")) return "🌫️";
+    return "🌤️";
+}
+
+// Extract weather details into grid items
+private static String extractWeatherDetails(String summary) {
+    StringBuilder details = new StringBuilder();
+    
+    String[] lines = summary.split("<br>");
+    
+    for (String line : lines) {
+        if (line.contains("Feels like")) {
+            String value = line.replace("Feels like", "").trim();
+            details.append(
+                "<div class='detail-item'>" +
+                "<span class='detail-label'>Feels Like</span>" +
+                "<span class='detail-value'>").append(value).append("</span>" +
+                "</div>");
+        }
+        else if (line.contains("Humidity")) {
+            String[] parts = line.split(",");
+            for (String part : parts) {
+                if (part.contains("Humidity")) {
+                    String value = part.replace("Humidity", "").trim();
+                    details.append(
+                        "<div class='detail-item'>" +
+                        "<span class='detail-label'>Humidity</span>" +
+                        "<span class='detail-value'>").append(value).append("</span>" +
+                        "</div>");
+                }
+                if (part.contains("Wind")) {
+                    String value = part.replace("Wind", "").trim();
+                    details.append(
+                        "<div class='detail-item'>" +
+                        "<span class='detail-label'>Wind Speed</span>" +
+                        "<span class='detail-value'>").append(value).append("</span>" +
+                        "</div>");
+                }
+            }
+        }
+        else if (line.contains("Visibility")) {
+            String value = line.replace("Visibility", "").trim();
+            details.append(
+                "<div class='detail-item'>" +
+                "<span class='detail-label'>Visibility</span>" +
+                "<span class='detail-value'>").append(value).append("</span>" +
+                "</div>");
+        }
+        else if (line.contains("AQI")) {
+            details.append(
+                "<div class='detail-item'>" +
+                "<span class='detail-label'>Air Quality</span>" +
+                "<span class='detail-value'>").append(line).append("</span>" +
+                "</div>");
+        }
+    }
+    
+    return details.toString();
+}
+  private static String parseForecastDays(String json) {
+    StringBuilder forecast = new StringBuilder();
+
+    try {
+        int start = json.indexOf("\"forecastday\":[");
+        if (start == -1) {
+            return "<p style='color:white;'>No forecast data available</p>";
+        }
+
+        String forecastPart = json.substring(start);
+
+        int count = 0;
+        int idx = 0;
+
+        while (count < 5) {
+            int dateIdx = forecastPart.indexOf("\"date\":\"", idx);
+            if (dateIdx == -1) break;
+
+            // ---- DATE ----
+            int dateStart = dateIdx + 8;
+            int dateEnd = forecastPart.indexOf("\"", dateStart);
+            String date = forecastPart.substring(dateStart, dateEnd);
+
+            // ---- MAX TEMP ----
+            double maxTemp = extractDouble(forecastPart, "\"maxtemp_c\":", dateEnd);
+
+            // ---- MIN TEMP ----
+            double minTemp = extractDouble(forecastPart, "\"mintemp_c\":", dateEnd);
+
+            // ---- CONDITION ----
+            String condition = extractString(forecastPart, "\"text\":\"", dateEnd);
+
+            // ---- RAIN ----
+            int rainChance = (int) extractDouble(forecastPart, "\"daily_chance_of_rain\":", dateEnd);
+
+            String emoji = getConditionEmoji(condition);
+            String formattedDate = formatDate(date);
+
+            forecast.append(
+                "<div class='forecast-card'>" +
+                "<div class='forecast-date'>" + formattedDate + "</div>" +
+                "<div class='forecast-icon'>" + emoji + "</div>" +
+                "<div class='forecast-temps'>" +
+                "<span class='temp-high'>" + Math.round(maxTemp) + "°</span>" +
+                "<span class='temp-low'>" + Math.round(minTemp) + "°</span>" +
+                "</div>" +
+                "<div class='forecast-condition'>" + condition + "</div>" +
+                "<div class='forecast-rain'>💧 Chance: " + rainChance + "%</div>" +
+                "</div>"
+            );
+
+            idx = dateEnd;
+            count++;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "<p style='color:white;'>Error parsing forecast</p>";
+    }
+
+    return forecast.toString();
+}
+private static double extractDouble(String src, String key, int from) {
+    int idx = src.indexOf(key, from);
+    if (idx == -1) return 0;
+    int start = idx + key.length();
+    int end = src.indexOf(",", start);
+    return Double.parseDouble(src.substring(start, end).trim());
+}
+
+private static String extractString(String src, String key, int from) {
+    int idx = src.indexOf(key, from);
+    if (idx == -1) return "";
+    int start = idx + key.length();
+    int end = src.indexOf("\"", start);
+    return src.substring(start, end);
+}
+
+
+// Get emoji based on condition
+private static String getConditionEmoji(String condition) {
+    String lower = condition.toLowerCase();
+    if (lower.contains("sunny") || lower.contains("clear")) return "☀️";
+    if (lower.contains("cloudy") || lower.contains("overcast")) return "☁️";
+    if (lower.contains("rain") || lower.contains("drizzle")) return "🌧️";
+    if (lower.contains("thunder") || lower.contains("storm")) return "⛈️";
+    if (lower.contains("snow")) return "❄️";
+    if (lower.contains("fog") || lower.contains("mist")) return "🌫️";
+    if (lower.contains("partly")) return "⛅";
+    return "🌤️";
+}
+
+// Format date from YYYY-MM-DD to something nicer
+private static String formatDate(String date) {
+    try {
+        String[] parts = date.split("-");
+        String[] months = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        int month = Integer.parseInt(parts[1]);
+        int day = Integer.parseInt(parts[2]);
+        return months[month] + " " + day;
+    } catch (Exception e) {
+        return date;
+    }
+}
 
     private static String mapEpaIndexToLabel(int idx) {
         return switch (idx) {
@@ -1305,4 +1738,106 @@ public static String getSessionToken(HttpExchange exchange) {
             os.close();
         }
     }
+    private static String extractLine(String summary, String key) {
+    for (String line : summary.split("<br>")) {
+        if (line.contains(key)) {
+            return line.replace(key, "").trim();
+        }
+    }
+    return "N/A";
 }
+
+private static int extractPm(String json, String key) {
+    int idx = json.indexOf(key);
+    if (idx == -1) return 0;
+    int start = idx + key.length();
+    int end = json.indexOf(",", start);
+    return (int) Double.parseDouble(json.substring(start, end).trim());
+}
+
+private static String extractFormField(String body, String field) {
+    int idx = body.indexOf("name=\"" + field + "\"");
+    if (idx == -1) return "";
+
+    int start = body.indexOf("\r\n\r\n", idx);
+    if (start == -1) return "";
+    start += 4;
+
+    int end = body.indexOf("\r\n--", start);
+    if (end == -1) return "";
+
+    return body.substring(start, end).trim();
+}
+
+
+
+
+private static String getExistingAvatarPath(String email) {
+    try (Connection conn = DBUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(
+             "SELECT avatar FROM users WHERE email = ?")) {
+
+        ps.setString(1, email);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("avatar");
+            }
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+public static String renderNavbar(HttpExchange exchange, String activePage) {
+    String userName = getUserFromSession(exchange);
+    boolean loggedIn = userName != null;
+    if (!loggedIn) userName = "Guest";
+
+    String home = "";
+    String blogs = "";
+    String rankings = "";
+    String profile = "";  // ADD THIS
+
+    if ("home".equals(activePage)) home = "nav-link-active";
+    if ("blogs".equals(activePage)) blogs = "nav-link-active";
+    if ("rankings".equals(activePage)) rankings = "nav-link-active";
+    if ("profile".equals(activePage)) profile = "nav-link-active";  // ADD THIS
+
+    String profileLink = loggedIn
+            ? "<a href='/profile' class='nav-link " + profile + "'>Profile</a>"  // ADD ACTIVE CLASS
+            : "";
+
+    String authLink = loggedIn
+            ? "<a href='/logout' class='nav-link nav-link-danger'>Logout</a>"
+            : "<a href='/login' class='nav-link'>Login</a>";
+
+    return """
+<header class="top-nav">
+    <div class="top-nav-left">
+        <div class="nav-logo-circle">
+            <img src="/images/logo.png" alt="AQI Logo">
+        </div>
+        <div class="nav-titles">
+            <div class="nav-app-name">AQI</div>
+            <div class="nav-app-subtitle">Hi, %s</div>
+        </div>
+    </div>
+
+    <nav class="top-nav-right">
+        <div class="nav-links">
+            <a href="/home" class="nav-link %s">Dashboard</a>
+            <a href="/blogs" class="nav-link %s">Blogs</a>
+            <a href="/rankings" class="nav-link %s">Rankings</a>
+            %s
+            %s
+        </div>
+    </nav>
+</header>
+""".formatted(userName, home, blogs, rankings, profileLink, authLink);
+}
+
+
+
+}
+
