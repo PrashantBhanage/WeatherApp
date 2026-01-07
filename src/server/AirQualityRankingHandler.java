@@ -80,6 +80,11 @@ public class AirQualityRankingHandler implements HttpHandler {
         }
 
         String html = RankingsTemplate.getPage(rows.toString());
+        html = html.replace(
+    "{{NAVBAR}}",
+    WeatherServer.renderNavbar(exchange, "rankings")
+);
+
 
         byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");

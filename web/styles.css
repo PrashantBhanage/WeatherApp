@@ -1371,11 +1371,6 @@ body {
   justify-content: space-between;
   margin-top: 10px;
 }
-
-.aqi-status {
-  margin-top: 12px;
-  font-size: 14px;
-}
 .aqi-good {
   background: #dcfce7;
 }

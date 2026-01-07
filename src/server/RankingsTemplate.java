@@ -1,6 +1,8 @@
 package server;
 
-public class RankingsTemplate {
+import com.sun.net.httpserver.HttpHandler;
+
+public class RankingsTemplate implements HttpHandler {
 
     public static String getPage(String rows) {
 
@@ -36,9 +38,11 @@ public class RankingsTemplate {
     <nav class="top-nav-right">
         <div class="nav-links">
             <a href="/home" class="nav-link">Dashboard</a>
-            <a href="/rankings" class="nav-link nav-link-active">Rankings</a>
             <a href="/blogs" class="nav-link {{ACTIVE_BLOGS}}">Blogs</a>
+            <a href="/rankings" class="nav-link nav-link-active">Rankings</a>
             <a href="/about" class="nav-link">About Us</a>
+            <a href="/login" class="nav-link">Login</a>
+            
         </div>
     </nav>
 </header>

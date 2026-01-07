@@ -61,6 +61,7 @@ public class WeatherServer {
 
         server.createContext("/rankings", new AirQualityRankingHandler());
      server.createContext("/about", new AboutHandler());
+     
 
 
 
@@ -244,30 +245,10 @@ html = html.replace("{{WEATHER_BADGE}}", weatherBadge);
 }
 
 
-            // navbar name + template
-            html = html.replace("Hi, User", "Hi, " + escapeHtml(displayName));
-            html = html.replace("{{USERNAME}}", escapeHtml(displayName));
-
-            // Set active nav link
-            html = html.replace("{{ACTIVE_HOME}}", "nav-link-active");
-            html = html.replace("{{ACTIVE_PROFILE}}", "");
-            html = html.replace("{{ACTIVE_INFO}}", "");
-            html = html.replace("{{ACTIVE_RANKINGS}}", "");
-
-            // Decide what to show in navbar: Login or Logout
-if (loggedIn) {
-    html = html.replace("{{AUTH_LINK}}",
-            "<a href=\"/logout\" class=\"nav-link nav-link-danger\">Logout</a>");
-} else {
-    html = html.replace("{{AUTH_LINK}}",
-            "<a href=\"/login\" class=\"nav-link\">Login</a>");
-}
-if (loggedIn) {
-    html = html.replace("{{PROFILE_LINK}}",
-        "<a href=\"/profile\" class=\"nav-link {{ACTIVE_PROFILE}}\">Profile</a>");
-} else {
-    html = html.replace("{{PROFILE_LINK}}", "");
-}
+           html = html.replace(
+    "{{NAVBAR}}",
+    renderNavbar(exchange, "home")
+);
 
 
 
@@ -567,6 +548,23 @@ static class ProfileHandler implements HttpHandler {
         }
     }
 }
+private static String applyNavbar(HttpExchange exchange, String html) {
+    String sessionId = getSessionId(exchange);
+    String username = sessionId == null ? null : SESSIONS.get(sessionId);
+
+    if (username != null) {
+        html = html.replace("{{AUTH_LINK}}", "<a href='/logout' class='nav-link'>Logout</a>");
+        html = html.replace("{{PROFILE_LINK}}", "<a href='/profile' class='nav-link'>Profile</a>");
+        html = html.replace("{{USERNAME}}", username);
+    } else {
+        html = html.replace("{{AUTH_LINK}}", "<a href='/login' class='nav-link'>Login</a>");
+        html = html.replace("{{PROFILE_LINK}}", "");
+        html = html.replace("{{USERNAME}}", "Guest");
+    }
+
+    return html;
+}
+
 
    
    // ================== FIXED UPDATE HANDLER ==================

@@ -1,108 +1,269 @@
-/* ===============================
-   ABOUT PAGE ONLY
-   =============================== */
-
-.hero-section {
-    position: relative;
-    height: 90vh;
-    overflow: hidden;
-    color: white;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.hero-video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    transform: translate(-50%, -50%);
-    object-fit: cover;
-    z-index: -2;
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: #0b1a12;
+  color: #d9e4d4;
 }
 
-.hero-section::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: -1;
+/* ================= HERO ================= */
+
+/* ================= HERO ================= */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  min-height: 80vh;
 }
 
-.hero-overlay {
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-    text-align: center;
-    z-index: 2;
-    padding: 0 20px;
+/* LEFT SIDE (TEXT) */
+.hero-left {
+  padding: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
 }
 
-.hero-overlay h2 {
-    font-size: 44px;
-    font-weight: 700;
-    margin-bottom: 16px;
+.hero-left h1 {
+  font-size: 88px;
+  line-height: 0.9;
+  font-weight: 800;
 }
 
-.hero-overlay p {
-    font-size: 17px;
-    max-width: 760px;
-    margin: auto;
-    opacity: 0.95;
+.hero-left .earth {
+  color: #5e7f63;
 }
 
-/* CONTENT */
-.content-section {
-    max-width: 1100px;
-    margin: auto;
-    padding: 80px 40px;
+.hero-left .body {
+  color: #ffffff;
 }
 
-.content-block {
-    margin-bottom: 56px;
+/* RIGHT SIDE (IMAGE) */
+.hero-right {
+  position: relative; /* ✅ REQUIRED */
+  background-color: #0b1a12;
+  background-image: url("/images/forest.jpg");
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  overflow: hidden;
 }
 
-.content-block h3 {
-    font-size: 28px;
-    margin-bottom: 12px;
+
+/* DARK BLEND OVERLAY (kills white bg softly) */
+.hero-right::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to left,
+    rgba(11, 26, 18, 0) 0%,
+    rgba(11, 26, 18, 0.35) 45%,
+    rgba(11, 26, 18, 0.9) 100%
+  );
+  z-index: 1;
 }
 
-.content-block p {
-    font-size: 16px;
-    line-height: 1.8;
-    color: #374151;
+
+/* ================= INTRO ================= */
+
+.intro {
+  text-align: center;
+  padding: 64px 20px;
 }
 
-.content-block.highlight {
-    background: white;
-    padding: 36px;
-    border-radius: 20px;
-    box-shadow: 0 20px 45px rgba(15,23,42,0.08);
+.intro h2 {
+  font-size: 42px;
+  margin-bottom: 24px;
+  color: #a7c957;
 }
 
-/* QUOTE */
-.quote-section {
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
-    color: white;
-    padding: 100px 30px;
-    text-align: center;
+.intro p {
+  max-width: 720px;
+  margin: auto;
+  line-height: 1.8;
 }
 
-.quote-section h2 {
-    font-size: 36px;
-    margin-bottom: 14px;
+/* ================= VALUES ================= */
+
+.values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  padding: 20px;
 }
 
-.quote-section p {
-    max-width: 700px;
-    margin: auto;
-    font-size: 16px;
+.value-card {
+  background: #a5b38a;
+  color: #0b1a12;
+  padding: 48px;
+  border-radius: 24px;
+  text-align: center;
 }
 
-/* FOOTER */
-.about-footer {
-    text-align: center;
+/* ================= MISSION (REFINED) ================= */
+
+.mission {
+  text-align: center;
+  padding: 72px 20px;
+}
+
+.mission h2 {
+  font-size: 42px;
+  margin-bottom: 24px;
+  color: #a7c957;
+}
+
+.mission p {
+  max-width: 720px;
+  margin: auto;
+  line-height: 1.8;
+}
+
+
+/* ================= STORY ================= */
+
+.story-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  padding: 80px;
+  align-items: center;
+}
+
+/* IMAGE */
+.story-image img {
+  width: 100%;
+  border-radius: 24px;
+  object-fit: cover;
+}
+
+/* TIMELINE */
+.insight-list {
+  position: relative;
+  padding-left: 56px; /* space for line + dots */
+}
+
+/* vertical line — TRUE CENTER */
+.insight-list::before {
+  content: "";
+  position: absolute;
+  left: 24px;              /* shared axis */
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #a7c957;
+}
+
+/* each item */
+.insight-item {
+  position: relative;
+  margin-bottom: 48px;
+}
+
+/* dot — PERFECTLY centered on the line */
+.insight-item .dot {
+  position: absolute;
+  left: 24px;              /* SAME axis as line */
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  background: #a7c957;
+  border-radius: 50%;
+  transform: translateX(-50%); /* centers dot over line */
+}
+
+/* text */
+.insight-item p {
+  margin-left: 24px;
+  padding-left: 32px;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #e5efe0;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .story-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ================= CTA ================= */
+
+.cta {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.cta button {
+  background: #a7c957;
+  color: #0b1a12;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 999px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .values {
+    grid-template-columns: 1fr;
     padding: 40px;
-    font-size: 13px;
-    color: #64748b;
-    border-top: 1px solid #e5e7eb;
+  }
+
+  .story {
+    grid-template-columns: 1fr;
+    padding: 60px 20px;
+  }
+
+  .hero-left h1 {
+    font-size: 56px;
+  }
+}
+.about-text {
+  padding: 80px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about-text h2 {
+  font-size: 42px;
+  color: #a7c957;
+  margin-bottom: 40px;
+}
+
+/* LEFT ACCENT LINE CONTAINER */
+.highlight-block {
+  text-align: left;
+  padding-left: 24px;
+  border-left: 4px solid #a7c957;
+}
+
+/* NORMAL PARAGRAPHS */
+.highlight-block p {
+  font-size: 18px;
+  line-height: 1.8;
+  margin-bottom: 24px;
+  color: #d9e4d4;
+}
+
+/* EXTRA EMPHASIS FOR LAST LINE */
+.highlight-block .strong-line {
+  font-weight: 600;
+  color: #ffffff;
 }
